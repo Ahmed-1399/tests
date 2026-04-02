@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy CloudWatch Alarm with SNS notification and SSM Session Manager role
+
+Parameters:
+  InstanceId:
+    Type: String
+    Default: i-0744582729e0db252
+    Description: EC2 Instance ID to monitor
+
+  EmailAddress:
+    Type: String
+    Default: aya.anas@algocas.com
+    Description: Email address to receive alarm notifications
+
+Resources:
+  # SNS Topic
+  AlarmSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: EC2 CPU Alarm Notifications
+
+  # SNS Subscription
+  AlarmSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      Endpoint: !Ref EmailAddress
+      TopicArn: !Ref AlarmSNSTopic
+
+  # CloudWatch Alarm
+  CPUUtilizationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: HighCPUUtilizationAlarm
+      AlarmDescription: Alarm when EC2 CPU exceeds 80%
+      Namespace: AWS/EC2
+      MetricName: CPUUtilization
+      Dimensions:
+        - Name: InstanceId
+          Value: !Ref InstanceId
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref AlarmSNSTopic
+
+  # # IAM Role for SSM Session Manager (Optional if you already have it)
+  # SSMRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     RoleName: SSMManagedRoleForEC2
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service: ec2.amazonaws.com
+  #           Action: sts:AssumeRole
+  #     ManagedPolicyArns:
+  #       - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  # # Instance Profile to attach the Role (Optional if you already have it)
+  # SSMInstanceProfile:
+  #   Type: AWS::IAM::InstanceProfile
+  #   Properties:
+  #     Roles:
+  #       - !Ref SSMRole
+
+Outputs:
+  SNSTopicArn:
+    Description: ARN of the SNS Topic
+    Value: !Ref AlarmSNSTopic

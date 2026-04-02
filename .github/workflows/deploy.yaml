@@ -1,0 +1,83 @@
+name: Deploy CloudFormation Stack for Game3at
+
+on:
+  push:
+    branches:
+      - main  # Trigger workflow on push to the main (Production) & test (Testing) branch
+      - test
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # This means the workflow will run on a Ubuntu machine
+
+    # Any run on production will be needed to be "approved" by a reviewer before it can proceed
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4  # Checks out the code from the repository
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4  # Sets up AWS credentials for the action
+        with:
+          # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # Your AWS access key (stored securely in GitHub Secrets)
+          # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # Your AWS secret key (stored securely in GitHub Secrets)
+          role-to-assume: arn:aws:iam::730335308011:role/GitHubActionsRole
+          aws-region: eu-west-1  # Replace with the region where your CloudFormation stack should be deployed
+
+      # - name: Deploy CloudFormation Template
+      #   run: |
+      #     aws cloudformation deploy \
+      #       --template-file temp/template.yaml \
+      #       --stack-name alarm-with-email-stack \
+      #       --parameter-overrides InstanceId=i-0744582729e0db252 EmailAddress=aya.anas@algocas.com \
+      #       --capabilities CAPABILITY_NAMED_IAM  # Needed for creating IAM roles
+
+
+          # if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+          #   echo "🚀 Deploy to production"
+
+          #   aws cloudformation deploy \
+          #     --template-file temp/template.yaml \
+          #     --stack-name alarm-with-email-stack \
+          #     --parameter-overrides InstanceId=i-0744582729e0db252 EmailAddress=aya.anas@algocas.com \
+          #     --capabilities CAPABILITY_NAMED_IAM \
+          #     --no-fail-on-empty-changeset
+
+          # else
+          #   echo "🧪 Validate only (test branch)"
+
+          #   aws cloudformation validate-template \
+          #     --template-body file://temp/template.yaml
+          # fi
+
+
+      - name: Deploy or Validate
+        run: |
+          if [ "${GITHUB_REF}" = "refs/heads/test" ]; then
+            echo "🧪 Deploy to STAGING"
+
+            aws cloudformation deploy \
+              --template-file temp/template.yaml \
+              --stack-name alarm-with-email-stack-staging \
+              --parameter-overrides InstanceId=i-0744582729e0db252 EmailAddress=aya.anas@algocas.com \
+              --capabilities CAPABILITY_NAMED_IAM \
+              --no-fail-on-empty-changeset
+
+          elif [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            echo "🚀 Deploy to PRODUCTION"
+
+            aws cloudformation deploy \
+              --template-file temp/template.yaml \
+              --stack-name alarm-with-email-stack-prod \
+              --parameter-overrides InstanceId=i-0744582729e0db252 EmailAddress=aya.anas@algocas.com \
+              --capabilities CAPABILITY_NAMED_IAM \
+              --no-fail-on-empty-changeset
+          fi
+
+      
