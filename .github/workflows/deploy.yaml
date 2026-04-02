@@ -27,7 +27,7 @@ jobs:
         with:
           # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # Your AWS access key (stored securely in GitHub Secrets)
           # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # Your AWS secret key (stored securely in GitHub Secrets)
-          role-to-assume: arn:aws:iam::730335308011:role/GitHubActionsRole
+          # role-to-assume: arn:aws:iam::730335308011:role/GitHubActionsRole
           aws-region: eu-west-1  # Replace with the region where your CloudFormation stack should be deployed
 
       # - name: Deploy CloudFormation Template

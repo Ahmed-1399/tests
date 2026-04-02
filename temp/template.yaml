@@ -4,7 +4,7 @@ Description: Deploy CloudWatch Alarm with SNS notification and SSM Session Manag
 Parameters:
   InstanceId:
     Type: String
-    Default: i-0744582729e0db252
+    # Default: i-0744582729e0db252
     Description: EC2 Instance ID to monitor
 
   EmailAddress:
