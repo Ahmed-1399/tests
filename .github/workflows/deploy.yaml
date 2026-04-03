@@ -6,6 +6,8 @@ on:
       - main  # Trigger workflow on push to the main (Production) & test (Testing) branch
       - test
 
+
+# Test from branch "test"
 permissions:
   id-token: write
   contents: read
